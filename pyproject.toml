@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ios-app-container"
+version = "0.1.0"
+description = "Extract one iPhone app's data container (Documents, Library, App Groups) over USB or Wi-Fi, via direct copy or a Finder-style backup. macOS only."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Tu Do" }]
+requires-python = ">=3.10"
+# Pinned: the tool relies on some internals of these libraries (see TESTED_VERSIONS in the code)
+dependencies = [
+    "pymobiledevice3==11.26.0",
+    "iphone_backup_decrypt==0.11.2",
+]
+keywords = ["ios", "iphone", "backup", "forensics", "app-container", "pymobiledevice3"]
+classifiers = [
+    "Environment :: Console",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: System :: Archiving :: Backup",
+]
+
+[project.urls]
+Homepage = "https://github.com/dovantuit/ios-app-container"
+
+[project.scripts]
+ios-app-container = "ios_app_container:cli"
+
+[tool.setuptools]
+py-modules = ["ios_app_container"]
