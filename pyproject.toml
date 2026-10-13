@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ios-app-container"
-version = "0.2.0"
+version = "0.2.1"
 description = "Extract one iPhone app's data container (Documents, Library, App Groups) over USB or Wi-Fi, via direct copy or a Finder-style backup. macOS only."
 readme = "README.md"
 license = "GPL-3.0-or-later"

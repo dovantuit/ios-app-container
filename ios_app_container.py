@@ -62,6 +62,7 @@ except ImportError:
 
 import argparse
 import asyncio
+import contextlib
 import getpass
 import importlib.metadata
 import logging
@@ -997,38 +998,44 @@ async def main():
         logging.getLogger("pymobiledevice3").setLevel(logging.INFO)
 
     lockdown = await connect_device(args.udid)
-    log(f"Device: {lockdown.display_name} ({lockdown.product_type}, iOS {lockdown.product_version}) "
-        f"UDID={lockdown.udid}{connection_text(lockdown)}")
-    apps = await get_user_apps(lockdown)
-
-    if args.list or args.list_direct:
-        print_app_list(apps, direct_only=args.list_direct)
-        return
-    if not args.app:
-        ap.error("app (bundle ID or name) is required")
-
-    bundle_id = resolve_app(apps, args.app)
-    info = apps[bundle_id]
-    group_ids = list((info.get("GroupContainers") or {}).keys())
-    log(f"App: {info.get('CFBundleDisplayName') or info.get('CFBundleName')} ({bundle_id}) "
-        f"v{info.get('CFBundleShortVersionString')} | FileSharing={bool(info.get('UIFileSharingEnabled'))}")
-    log(f"Container: {info.get('Container')}")
-    for g, p in (info.get("GroupContainers") or {}).items():
-        log(f"AppGroup : {g} -> {p}")
-
-    out_dir = Path(args.output).expanduser().resolve() if args.output \
-        else OUTPUT_ROOT / f"{bundle_id}_{datetime.now():%Y%m%d_%H%M%S}"
-    created = not out_dir.exists()
-    out_dir.mkdir(parents=True, exist_ok=True)
+    # Close the SSL lockdown session while the loop is alive: otherwise it is finalized after
+    # asyncio.run closed the loop and Python 3.10 prints "Fatal error on SSL transport".
     try:
-        await extract_to(args, lockdown, info, bundle_id, group_ids, out_dir)
-    except BaseException:
-        # Failed or interrupted run (wrong password, Ctrl-C, device error): do not leave behind
-        # the output folder this run created if nothing was extracted into it
-        if created and not any(p.is_file() for p in out_dir.rglob("*")):
-            shutil.rmtree(out_dir, ignore_errors=True)
-            log(f"Removed empty output folder {out_dir}")
-        raise
+        log(f"Device: {lockdown.display_name} ({lockdown.product_type}, iOS {lockdown.product_version}) "
+            f"UDID={lockdown.udid}{connection_text(lockdown)}")
+        apps = await get_user_apps(lockdown)
+
+        if args.list or args.list_direct:
+            print_app_list(apps, direct_only=args.list_direct)
+            return
+        if not args.app:
+            ap.error("app (bundle ID or name) is required")
+
+        bundle_id = resolve_app(apps, args.app)
+        info = apps[bundle_id]
+        group_ids = list((info.get("GroupContainers") or {}).keys())
+        log(f"App: {info.get('CFBundleDisplayName') or info.get('CFBundleName')} ({bundle_id}) "
+            f"v{info.get('CFBundleShortVersionString')} | FileSharing={bool(info.get('UIFileSharingEnabled'))}")
+        log(f"Container: {info.get('Container')}")
+        for g, p in (info.get("GroupContainers") or {}).items():
+            log(f"AppGroup : {g} -> {p}")
+
+        out_dir = Path(args.output).expanduser().resolve() if args.output \
+            else OUTPUT_ROOT / f"{bundle_id}_{datetime.now():%Y%m%d_%H%M%S}"
+        created = not out_dir.exists()
+        out_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            await extract_to(args, lockdown, info, bundle_id, group_ids, out_dir)
+        except BaseException:
+            # Failed or interrupted run (wrong password, Ctrl-C, device error): do not leave behind
+            # the output folder this run created if nothing was extracted into it
+            if created and not any(p.is_file() for p in out_dir.rglob("*")):
+                shutil.rmtree(out_dir, ignore_errors=True)
+                log(f"Removed empty output folder {out_dir}")
+            raise
+    finally:
+        with contextlib.suppress(Exception):
+            await lockdown.close()
 
 
 async def extract_to(args, lockdown, info, bundle_id, group_ids, out_dir: Path):
