@@ -1019,6 +1019,7 @@ async def main():
         log(f"Container: {info.get('Container')}")
         for g, p in (info.get("GroupContainers") or {}).items():
             log(f"AppGroup : {g} -> {p}")
+        log(f"Engine   : {args.engine} (used only if a backup is needed)")
 
         out_dir = Path(args.output).expanduser().resolve() if args.output \
             else OUTPUT_ROOT / f"{bundle_id}_{datetime.now():%Y%m%d_%H%M%S}"
