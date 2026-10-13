@@ -13,11 +13,7 @@ uv tool install git+https://github.com/dovantuit/ios-app-container   # or straig
 
 Then run `ios-app-container`. Uninstall with `uv tool uninstall ios-app-container`.
 
-- **Apple silicon Macs (M1/M2/…):** use an **arm64** Python. The `cryptography` dependency only ships prebuilt wheels for arm64; with an x86_64 (Rosetta) Python it has to be built from source and needs Rust ≥ 1.83. If your `uv` is an Intel build (`file $(which uv)` says `x86_64`), pick the Python explicitly:
-  ```bash
-  uv tool install --python cpython-3.12-macos-aarch64-none ios-app-container
-  ```
-- **Intel Macs:** Rust ≥ 1.83 is needed to build `cryptography` (`rustup update`).
+- Works on Apple silicon and Intel Macs, with arm64 or x86_64 (Rosetta) Python; no compiler or Rust needed.
 - From source, for development: `uv tool install --editable .` in the repo folder.
 - Library versions are **pinned** because the tool uses some of their internals. When the installed versions differ from the tested ones, the tool prints a `WARNING`; reinstall with `uv tool install --force ios-app-container`.
 - The iPhone must be **unlocked** and must have **trusted** this Mac.
