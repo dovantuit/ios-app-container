@@ -158,7 +158,8 @@ Everything lives under `~/iOSAppBackups/` (override with the `IOS_APP_EXTRACT_HO
 | `--skip-backup` | Do not back up again; extract from the existing backup |
 | `--save-manifest` | Also save the decrypted `Manifest.db` (lists **every** file on the iPhone) |
 | `--no-open` | Do not open Finder at the end |
-| `-v`, `--verbose` | pymobiledevice3 log; with pmd3 also every file received |
+| `-v`, `--version` | Show the tool version and exit |
+| `--verbose` | pymobiledevice3 log; with pmd3 also every file received |
 | `--full` | [pmd3] Force a full backup |
 | `--no-filter` | [pmd3] Store the whole device backup, unfiltered |
 | `--backup-dir DIR` | [pmd3] Cache folder |

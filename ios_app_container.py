@@ -45,7 +45,7 @@ Usage:
     ios-app-container -d                # connected iPhones (UDID, USB / Wi-Fi)
     ios-app-container -bk               # Finder backups on this Mac (--delete-backup to remove)
     ios-app-container -imazing          # iMazing backup folders, backups and known devices
-    ios-app-container com.example.app --engine pmd3 -v   # pmd3: every file + heartbeat
+    ios-app-container com.example.app --engine pmd3 --verbose   # pmd3: every file + heartbeat
 
 Install (macOS only). Library versions are pinned in pyproject.toml because the tool uses
 some internals of them; it warns at start when the installed ones differ:
@@ -911,6 +911,13 @@ def check_library_versions():
 
 
 # ---------------------------------------------------------------- main
+def tool_version():
+    try:
+        return importlib.metadata.version("ios-app-container")
+    except importlib.metadata.PackageNotFoundError:
+        return "unknown (not installed as a package)"
+
+
 async def main():
     ap = argparse.ArgumentParser(description="Backup iPhone over USB and extract one app's data.")
     ap.add_argument("app", nargs="?", help="Bundle ID (e.g. com.example.app) or app name")
@@ -932,7 +939,9 @@ async def main():
     ap.add_argument("--older-than", type=int, metavar="DAYS", help="With -bk: only backups at least DAYS days old")
     ap.add_argument("--delete-backup", nargs="+", metavar="FOLDER",
                     help="Delete Finder backup folder(s) as named by -bk, asking y/N for each, and exit")
-    ap.add_argument("-v", "--verbose", action="store_true",
+    ap.add_argument("-v", "--version", action="version", version=f"%(prog)s {tool_version()}",
+                    help="Show the tool version and exit")
+    ap.add_argument("--verbose", action="store_true",
                     help="pymobiledevice3 log; with --engine pmd3 also every file received (KEEP/skip) "
                          "+ heartbeat every 10s")
     ap.add_argument("--engine", choices=ENGINES,
